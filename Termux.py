@@ -1,30 +1,25 @@
 #!/data/data/com.termux/files/usr/bin/python
-
--- coding: utf-8 --
+# -*- coding: utf-8 -*-
 
 """
-PAINEL DE PERSONALIZAÇÃO DO TERMUX
+PAINEL DE PERSONALIZAÇÃO DO TERMUX - VERSÃO 2.0
 Criado por: DOCTOR VALEYARD CORINGA LUNÁTICO
-Versão: 1.0
-Descrição: Este script permite personalizar a aparência do prompt do Termux
-(PS1) de forma interativa, com opções de nome, molduras, cores e modelos.
-As alterações são salvas no arquivo .bashrc e permanecem mesmo após fechar
-o Termux.
+Descrição: Agora com banners 3D, caixinhas modernas, mais modelos e total personalização.
 """
 
 import os
 import json
 import sys
 import shutil
-import time  # <- import adicionado para hora
+import random
 
-# Caminhos
+# ========== CONFIGURAÇÕES ==========
 HOME = os.environ.get('HOME', '/data/data/com.termux/files/home')
-CONFIG_FILE = os.path.join(HOME, '.termux_painel_config.json')
+CONFIG_FILE = os.path.join(HOME, '.termux_painel_v2.json')
 BASHRC = os.path.join(HOME, '.bashrc')
-BACKUP_BASHRC = os.path.join(HOME, '.bashrc.backup_painel')
+BACKUP_BASHRC = os.path.join(HOME, '.bashrc.backup_v2')
 
-# Cores ANSI para o menu e prompt
+# Cores ANSI
 CORES = {
     'reset': '\033[0m',
     'bold': '\033[1m',
@@ -36,85 +31,133 @@ CORES = {
     'ciano': '\033[96m',
     'branco': '\033[97m',
     'preto': '\033[90m',
+    'laranja': '\033[38;5;208m',
+    'roxo': '\033[38;5;129m',
+    'rosa': '\033[38;5;213m',
 }
 
-# Lista de cores disponíveis para escolha (para o usuário)
-CORES_DISPONIVEIS = ['vermelho', 'verde', 'amarelo', 'azul', 'magenta', 'ciano', 'branco', 'preto']
+CORES_DISPONIVEIS = ['vermelho', 'verde', 'amarelo', 'azul', 'magenta', 'ciano', 'branco', 'preto', 'laranja', 'roxo', 'rosa']
 
-# Modelos de prompt predefinidos
-MODELOS = {
-    '1': r'\u@\h $ ',                     # usuario@host $
-    '2': r'\u $ ',                         # usuario $
-    '3': r'➜ \u $ ',                       # ➜ usuario $
-    '4': r'┌─[\u]─[\w]\n└─$ ',             # ┌─[usuario]─[caminho]\n└─$
-    '5': r'【\u】$ ',                        # 【usuario】$
-    '6': r'\u\e[92m@\h:\w$ ',  # usuário vermelho, @ verde, etc. (exemplo colorido)
-    '7': r'\n┌─[\u]─[$(date +%H:%M)]\n└─$ ',  # com hora
+# ========== BANNERS 3D ==========
+BANNERS = {
+    '1': '''
+    ██████╗  ██████╗  ██████╗████████╗ ██████╗ ██████╗ 
+    ██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
+    ██║  ██║██║   ██║██║        ██║   ██║   ██║██████╔╝
+    ██║  ██║██║   ██║██║        ██║   ██║   ██║██╔══██╗
+    ██████╔╝╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║
+    ╚═════╝  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
+    ''',
+    '2': '''
+    ╔══╗╔══╗╔╗─╔╗╔══╗╔══╗╔╗─╔╗╔══╗
+    ║╔╗║║╔╗║║║─║║║╔╗║╚║║╝║║─║║║╔═╝
+    ║╚╝║║╚╝║║╚═╝║║╚╝║─║║─║╚═╝║║╚═╗
+    ╚══╝╚══╝╚═╗╔╝╚══╝─╚╝─╚═╗╔╝╚══╝
+    ────────╔═╝║──────╔═╝║────
+    ────────╚══╝──────╚══╝────
+    ''',
+    '3': '''
+    ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ 
+    ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ 
+    ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ 
+    ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ 
+    ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░ 
+    ''',
+    '4': '''
+    ╔═╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╔═╗
+    ║ ║╠═╝ ║ ║╣ ╠╦╝ ║ ╚═╗
+    ╚═╝╩   ╩ ╚═╝╩╚═ ╩ ╚═╝
+    ''',
+    '5': '''
+    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+    ██░▄▄░█░▄▄▀█▄░▄██░▄▄▀█░██░██
+    ██░██░█░▀▀░██░███░▀▀▄█░▀▀░██
+    ██░▀▀░█░██░██░███░██░█▀▄▄▀██
+    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    ''',
+    '6': '''
+    ┌─┐┌─┐┌┬┐┌─┐┬─┐┌─┐┌─┐┌┬┐
+    │ ┬├┤  │ ├┤ ├┬┘├─┘├─┤ │ 
+    └─┘└─┘ ┴ └─┘┴└─┴  ┴ ┴ ┴ 
+    '''
 }
 
-# Molduras predefinidas
+# ========== MOLDURAS E CAIXINHAS ==========
 MOLDURAS = {
-    '1': ('---', '---'),
-    '2': ('===', '==='),
-    '3': ('', ''),
-    '4': ('###', '###'),
-    '5': ('~~~', '~~~'),
-    '6': ('▄'*10, '▀'*10),
-    '7': ('════', '════➤'),
-    '8': ('────', '────➤'),
-    '9': ('', ''),  # sem moldura
+    '1': ('╔════════════════════════╗', '╚════════════════════════╝'),
+    '2': ('┌────────────────────────┐', '└────────────────────────┘'),
+    '3': ('▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄', '▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀'),
+    '4': ('[========================]', '[========================]'),
+    '5': ('╭────────────────────────╮', '╰────────────────────────╯'),
+    '6': ('┏━━━━━━━━━━━━━━━━━━━━━━━━┓', '┗━━━━━━━━━━━━━━━━━━━━━━━━┛'),
+    '7': ('🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲', '🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳🔳'),
+    '8': ('', ''),  # sem moldura
 }
 
+# ========== MODELOS DE PROMPT ==========
+MODELOS = {
+    '1': r'\u@\h \w ',                     # usuario@host ~/pasta
+    '2': r'\u \w ',                         # usuario ~/pasta
+    '3': r'┌─[\u]─[\w]\n└─',                # com linha
+    '4': r'【\u】 \w ',                       # 【usuario】 ~/pasta
+    '5': r'\[\e[91m\]\u\[\e[92m\]@\h:\w\[\e[0m\] ',  # colorido
+    '6': r'\n┌─[\u]─[$(date +%H:%M)]─[\w]\n└─',  # com hora
+    '7': r'╭─[\u]─[\w]\n╰─',                  # estilo bonito
+}
+
+# ========== FUNÇÕES UTILITÁRIAS ==========
 def limpar_tela():
-    """Limpa a tela do terminal."""
     os.system('clear')
 
 def exibir_titulo():
-    """Exibe o título do painel com arte ASCII."""
     print(CORES['magenta'] + CORES['bold'] + """
 ╔══════════════════════════════════════════════════════════╗
-║     PAINEL DE PERSONALIZAÇÃO DO TERMUX                  ║
+║         PAINEL DE PERSONALIZAÇÃO DO TERMUX V2.0         ║
 ║            DOCTOR VALEYARD CORINGA LUNÁTICO             ║
 ╚══════════════════════════════════════════════════════════╝
 """ + CORES['reset'])
 
 def carregar_config():
-    """Carrega as configurações do arquivo JSON ou retorna valores padrão."""
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, 'r') as f:
                 config = json.load(f)
-            # Garantir que todas as chaves existam
-            defaults = {
-                'nome': os.environ.get('USER', 'termux'),
-                'moldura_sup': '',
-                'moldura_inf': '',
-                'cor_nome': 'verde',
-                'cor_prompt': 'azul',
-                'modelo': '2',
-                'cifrao': '$',
-                'cor_cifrao': 'amarelo'
-            }
-            for key, value in defaults.items():
-                if key not in config:
-                    config[key] = value
-            return config
+                defaults = {
+                    'nome': os.environ.get('USER', 'termux'),
+                    'banner': '1',
+                    'moldura_sup': '╔════════════════════════╗',
+                    'moldura_inf': '╚════════════════════════╝',
+                    'cor_nome': 'verde',
+                    'cor_diretorio': 'azul',
+                    'cor_prompt': 'ciano',
+                    'modelo': '2',
+                    'cifrao': '$',
+                    'cor_cifrao': 'amarelo',
+                    'exibir_banner': True,
+                    'exibir_moldura': True,
+                }
+                for key, value in defaults.items():
+                    if key not in config:
+                        config[key] = value
+                return config
         except:
             pass
-    # Valores padrão
     return {
         'nome': os.environ.get('USER', 'termux'),
-        'moldura_sup': '',
-        'moldura_inf': '',
+        'banner': '1',
+        'moldura_sup': '╔════════════════════════╗',
+        'moldura_inf': '╚════════════════════════╝',
         'cor_nome': 'verde',
-        'cor_prompt': 'azul',
+        'cor_diretorio': 'azul',
+        'cor_prompt': 'ciano',
         'modelo': '2',
         'cifrao': '$',
-        'cor_cifrao': 'amarelo'
+        'cor_cifrao': 'amarelo',
+        'exibir_banner': True,
+        'exibir_moldura': True,
     }
 
 def salvar_config(config):
-    """Salva as configurações no arquivo JSON."""
     try:
         with open(CONFIG_FILE, 'w') as f:
             json.dump(config, f, indent=4)
@@ -122,242 +165,251 @@ def salvar_config(config):
     except:
         return False
 
-def aplicar_config(config):
-    """Aplica as configurações gerando a linha PS1 e inserindo no .bashrc."""
-    # Gerar a linha PS1 com base nas configurações
-    ps1 = gerar_ps1(config)
-
-    # Fazer backup do .bashrc se não existir  
-    if os.path.exists(BASHRC) and not os.path.exists(BACKUP_BASHRC):  
-        shutil.copy2(BASHRC, BACKUP_BASHRC)  
-
-    # Ler conteúdo atual do .bashrc (ou criar vazio)  
-    if os.path.exists(BASHRC):  
-        with open(BASHRC, 'r') as f:  
-            linhas = f.readlines()  
-    else:  
-        linhas = []  
-
-    # Marcadores para identificar a seção do painel  
-    marcador_inicio = "# --- PAINEL DOUTOR VALEYARD INÍCIO ---\n"  
-    marcador_fim = "# --- FIM ---\n"  
-
-    # Procurar a seção existente  
-    inicio_idx = -1  
-    fim_idx = -1  
-    for i, linha in enumerate(linhas):  
-        if linha == marcador_inicio:  
-            inicio_idx = i  
-        elif linha == marcador_fim:  
-            fim_idx = i  
-            break  
-
-    nova_linha_ps1 = f"PS1='{ps1}'\n"  
-
-    if inicio_idx != -1 and fim_idx != -1:  
-        # Substituir a seção antiga  
-        linhas[inicio_idx+1:fim_idx] = [nova_linha_ps1]  
-    else:  
-        # Adicionar nova seção no final  
-        if linhas and not linhas[-1].endswith('\n'):  
-            linhas[-1] += '\n'  
-        linhas.append(marcador_inicio)  
-        linhas.append(nova_linha_ps1)  
-        linhas.append(marcador_fim)  
-
-    # Escrever de volta no .bashrc  
-    with open(BASHRC, 'w') as f:  
-        f.writelines(linhas)  
-
-    return True
-
 def gerar_ps1(config):
-    """Gera a string PS1 baseada na configuração."""
+    """Gera o PS1 completo com base na configuração."""
     nome = config['nome']
     cor_nome = CORES[config['cor_nome']]
+    cor_dir = CORES[config['cor_diretorio']]
     cor_prompt = CORES[config['cor_prompt']]
     cifrao = config['cifrao']
     cor_cifrao = CORES[config['cor_cifrao']]
     reset = CORES['reset']
     bold = CORES['bold']
 
-    # Construção personalizada com hora no topo
+    # Modelo base (substitui \u pelo nome personalizado)
+    modelo = MODELOS.get(config['modelo'], MODELOS['2'])
+    modelo = modelo.replace(r'\u', nome)
+
+    # Aplicar cores de forma inteligente (simplificado)
+    # Vamos construir o prompt manualmente para ter controle total
     prompt = ""
-
-    # Banner da hora adicionado
-    hora_atual = time.strftime("%H:%M:%S")
-    prompt += CORES['amarelo'] + "Hora: " + hora_atual + reset + "\n"
-
-    # Moldura superior
-    if config['moldura_sup']:
+    
+    # Banner (se ativo)
+    if config['exibir_banner'] and config['banner'] in BANNERS:
+        banner = BANNERS[config['banner']]
+        # Aplicar cor aleatória ou fixa? Vamos usar ciano por padrão
+        prompt += CORES['ciano'] + banner + reset + "\n"
+    
+    # Moldura superior (se ativa)
+    if config['exibir_moldura'] and config['moldura_sup']:
         prompt += config['moldura_sup'] + "\n"
-
-    # Nome com cor
+    
+    # Linha principal: nome colorido + : + diretório colorido + espaço + cifrão colorido
     prompt += cor_nome + bold + nome + reset
-
-    # Parte do prompt (caminho)
-    prompt += cor_prompt + ":\\w" + reset
-
-    # Cifrão
+    prompt += cor_prompt + ":" + reset
+    prompt += cor_dir + r"\w" + reset
     prompt += " " + cor_cifrao + cifrao + reset + " "
-
-    # Moldura inferior
-    if config['moldura_inf']:
+    
+    # Moldura inferior (se ativa)
+    if config['exibir_moldura'] and config['moldura_inf']:
         prompt += "\n" + config['moldura_inf']
-
+    
     return prompt
 
+def aplicar_config(config):
+    ps1 = gerar_ps1(config)
+    
+    # Backup
+    if os.path.exists(BASHRC) and not os.path.exists(BACKUP_BASHRC):
+        shutil.copy2(BASHRC, BACKUP_BASHRC)
+    
+    if os.path.exists(BASHRC):
+        with open(BASHRC, 'r') as f:
+            linhas = f.readlines()
+    else:
+        linhas = []
+    
+    marcador_inicio = "# --- PAINEL DOUTOR VALEYARD V2 INÍCIO ---\n"
+    marcador_fim = "# --- FIM V2 ---\n"
+    
+    inicio_idx = -1
+    fim_idx = -1
+    for i, linha in enumerate(linhas):
+        if linha == marcador_inicio:
+            inicio_idx = i
+        elif linha == marcador_fim:
+            fim_idx = i
+            break
+    
+    nova_linha_ps1 = f"PS1='{ps1}'\n"
+    
+    if inicio_idx != -1 and fim_idx != -1:
+        linhas[inicio_idx+1:fim_idx] = [nova_linha_ps1]
+    else:
+        if linhas and not linhas[-1].endswith('\n'):
+            linhas[-1] += '\n'
+        linhas.append(marcador_inicio)
+        linhas.append(nova_linha_ps1)
+        linhas.append(marcador_fim)
+    
+    with open(BASHRC, 'w') as f:
+        f.writelines(linhas)
+    return True
+
+# ========== MENUS ==========
 def menu_principal(config):
-    """Exibe o menu principal e processa as opções."""
     while True:
         limpar_tela()
         exibir_titulo()
-        print("Configurações atuais:\n")
-        print(f"Nome: {config['nome']}")
-        print(f"Moldura superior: '{config['moldura_sup']}'")
-        print(f"Moldura inferior: '{config['moldura_inf']}'")
-        print(f"Cor do nome: {config['cor_nome']}")
-        print(f"Cor do prompt: {config['cor_prompt']}")
-        print(f"Modelo: {config['modelo']}")
-        print(f"Símbolo do cifrão: '{config['cifrao']}'")
-        print(f"Cor do cifrão: {config['cor_cifrao']}")
+        print("⚙️  CONFIGURAÇÕES ATUAIS:\n")
+        print(f"👤 Nome: {config['nome']}")
+        print(f"🖼️  Banner: {config['banner']} (ativo: {config['exibir_banner']})")
+        print(f"📦 Moldura: {config['moldura_sup'][:20]}... (ativo: {config['exibir_moldura']})")
+        print(f"🎨 Cor nome: {config['cor_nome']}")
+        print(f"📁 Cor diretório: {config['cor_diretorio']}")
+        print(f"💬 Cor prompt: {config['cor_prompt']}")
+        print(f"📝 Modelo: {config['modelo']}")
+        print(f"💲 Cifrão: '{config['cifrao']}' (cor: {config['cor_cifrao']})")
         print("\n" + "="*50)
-        print("Escolha uma opção:")
+        print("🔹 ESCOLHA UMA OPÇÃO:")
         print("1. Alterar nome")
-        print("2. Escolher moldura")
-        print("3. Escolher cor do nome")
-        print("4. Escolher cor do prompt")
-        print("5. Escolher modelo de prompt")
-        print("6. Personalizar símbolo do cifrão")
-        print("7. Escolher cor do cifrão")
-        print("8. Visualizar prévia")
-        print("9. Salvar e aplicar (sair)")
+        print("2. Escolher banner 3D")
+        print("3. Escolher moldura/caixinha")
+        print("4. Escolher cor do nome")
+        print("5. Escolher cor do diretório")
+        print("6. Escolher cor do prompt (texto)")
+        print("7. Escolher modelo de prompt")
+        print("8. Personalizar símbolo do cifrão")
+        print("9. Escolher cor do cifrão")
+        print("10. Ativar/desativar banner")
+        print("11. Ativar/desativar moldura")
+        print("12. Visualizar prévia completa")
+        print("13. SALVAR E APLICAR (sair)")
         print("0. Sair sem salvar")
-        opcao = input("\nDigite o número da opção: ").strip()
+        opcao = input("\n👉 Digite o número: ").strip()
+        
+        if opcao == '1':
+            config['nome'] = input("Digite o nome desejado: ").strip() or config['nome']
+        elif opcao == '2':
+            config = menu_banner(config)
+        elif opcao == '3':
+            config = menu_moldura(config)
+        elif opcao == '4':
+            config = menu_cor("nome", config)
+        elif opcao == '5':
+            config = menu_cor("diretorio", config)
+        elif opcao == '6':
+            config = menu_cor("prompt", config)
+        elif opcao == '7':
+            config = menu_modelo(config)
+        elif opcao == '8':
+            config['cifrao'] = input("Digite o símbolo desejado (ex: $, #, >, λ): ").strip() or config['cifrao']
+        elif opcao == '9':
+            config = menu_cor("cifrao", config)
+        elif opcao == '10':
+            config['exibir_banner'] = not config['exibir_banner']
+            print(f"Banner agora está {'ATIVADO' if config['exibir_banner'] else 'DESATIVADO'}")
+            input("Pressione Enter...")
+        elif opcao == '11':
+            config['exibir_moldura'] = not config['exibir_moldura']
+            print(f"Moldura agora está {'ATIVADA' if config['exibir_moldura'] else 'DESATIVADA'}")
+            input("Pressione Enter...")
+        elif opcao == '12':
+            visualizar_previa(config)
+        elif opcao == '13':
+            if salvar_config(config) and aplicar_config(config):
+                print("\n✅ Configurações salvas e aplicadas com sucesso!")
+                print("Reinicie o Termux ou execute 'source ~/.bashrc'.")
+            else:
+                print("\n❌ Erro ao salvar.")
+            input("Pressione Enter para sair...")
+            break
+        elif opcao == '0':
+            print("\nSaindo sem salvar.")
+            break
+        else:
+            input("Opção inválida. Pressione Enter...")
 
-        if opcao == '1':  
-            config['nome'] = input("Digite o nome desejado: ").strip() or config['nome']  
-        elif opcao == '2':  
-            config = menu_moldura(config)  
-        elif opcao == '3':  
-            config = menu_cor("nome", config)  
-        elif opcao == '4':  
-            config = menu_cor("prompt", config)  
-        elif opcao == '5':  
-            config = menu_modelo(config)  
-        elif opcao == '6':  
-            config['cifrao'] = input("Digite o símbolo desejado (ex: $, #, >, λ): ").strip() or config['cifrao']  
-        elif opcao == '7':  
-            config = menu_cor("cifrao", config)  
-        elif opcao == '8':  
-            visualizar_previa(config)  
-        elif opcao == '9':  
-            if salvar_config(config) and aplicar_config(config):  
-                print("\nConfigurações salvas e aplicadas com sucesso!")  
-                print("Reinicie o Termux ou execute 'source ~/.bashrc' para ver as alterações.")  
-            else:  
-                print("\nErro ao salvar configurações.")  
-            input("Pressione Enter para sair...")  
-            break  
-        elif opcao == '0':  
-            print("\nSaindo sem salvar.")  
-            break  
-        else:  
-            input("Opção inválida. Pressione Enter para continuar...")
-
-def menu_moldura(config):
-    """Submenu para escolher moldura."""
+def menu_banner(config):
     limpar_tela()
     exibir_titulo()
-    print("Escolha um tipo de moldura:\n")
+    print("🎨 ESCOLHA UM BANNER 3D:\n")
+    for chave, banner in BANNERS.items():
+        print(f"{chave}. {banner[:50]}...")
+    print("0. Voltar")
+    opcao = input("\n👉 Número do banner: ").strip()
+    if opcao in BANNERS:
+        config['banner'] = opcao
+    elif opcao == '0':
+        pass
+    else:
+        input("Opção inválida.")
+    return config
+
+def menu_moldura(config):
+    limpar_tela()
+    exibir_titulo()
+    print("📦 ESCOLHA UMA MOLDURA/CAIXINHA:\n")
     for chave, (sup, inf) in MOLDURAS.items():
-        print(f"{chave}. Superior: '{sup}'  Inferior: '{inf}'")
-    print("10. Personalizar (digitar superior e inferior)")
-    print("0. Voltar sem alterar")
-    opcao = input("\nDigite o número: ").strip()
+        print(f"{chave}. Sup: '{sup[:20]}...' Inf: '{inf[:20]}...'")
+    print("9. Personalizar (digitar superior e inferior)")
+    print("0. Voltar")
+    opcao = input("\n👉 Número: ").strip()
     if opcao in MOLDURAS:
         config['moldura_sup'], config['moldura_inf'] = MOLDURAS[opcao]
-    elif opcao == '10':
+    elif opcao == '9':
         config['moldura_sup'] = input("Digite a moldura superior: ").strip()
         config['moldura_inf'] = input("Digite a moldura inferior: ").strip()
     elif opcao == '0':
         pass
     else:
-        input("Opção inválida. Pressione Enter...")
+        input("Opção inválida.")
     return config
 
 def menu_cor(tipo, config):
-    """Submenu para escolher cor (tipo: 'nome', 'prompt', 'cifrao')."""
     limpar_tela()
     exibir_titulo()
-    print(f"Escolha a cor para {tipo}:\n")
+    print(f"🎨 ESCOLHA A COR PARA {tipo.upper()}:\n")
     for i, cor in enumerate(CORES_DISPONIVEIS, 1):
         print(f"{i}. {CORES[cor]}{cor}{CORES['reset']}")
     print("0. Voltar")
-    opcao = input("\nDigite o número: ").strip()
+    opcao = input("\n👉 Número: ").strip()
     try:
         idx = int(opcao) - 1
         if 0 <= idx < len(CORES_DISPONIVEIS):
             if tipo == "nome":
                 config['cor_nome'] = CORES_DISPONIVEIS[idx]
+            elif tipo == "diretorio":
+                config['cor_diretorio'] = CORES_DISPONIVEIS[idx]
             elif tipo == "prompt":
                 config['cor_prompt'] = CORES_DISPONIVEIS[idx]
             elif tipo == "cifrao":
                 config['cor_cifrao'] = CORES_DISPONIVEIS[idx]
-        elif opcao == '0':
-            pass
-        else:
-            input("Opção inválida. Pressione Enter...")
     except:
-        input("Opção inválida. Pressione Enter...")
+        pass
     return config
 
 def menu_modelo(config):
-    """Submenu para escolher modelo de prompt."""
     limpar_tela()
     exibir_titulo()
-    print("Escolha um modelo de prompt (exemplos aproximados):\n")
+    print("📝 ESCOLHA UM MODELO DE PROMPT:\n")
     for chave, modelo in MODELOS.items():
-        # Mostrar exemplo substituindo \u pelo nome atual
         exemplo = modelo.replace(r'\u', config['nome'])
         print(f"{chave}. {exemplo[:50]}...")
     print("0. Voltar")
-    opcao = input("\nDigite o número do modelo: ").strip()
+    opcao = input("\n👉 Número: ").strip()
     if opcao in MODELOS:
         config['modelo'] = opcao
-    elif opcao == '0':
-        pass
-    else:
-        input("Opção inválida. Pressione Enter...")
     return config
 
 def visualizar_previa(config):
-    """Mostra uma prévia do prompt com as configurações atuais."""
     limpar_tela()
     exibir_titulo()
-    print("PRÉVIA DO SEU PROMPT PERSONALIZADO:\n")
+    print("🔍 PRÉVIA DO SEU TERMINAL PERSONALIZADO:\n")
     ps1 = gerar_ps1(config)
-    # Simulação visual no Python
-    preview = ""
-    if config['moldura_sup']:
-        preview += config['moldura_sup'] + "\n"
-    preview += CORES[config['cor_nome']] + CORES['bold'] + config['nome'] + CORES['reset']
-    preview += CORES[config['cor_prompt']] + ":~/caminho" + CORES['reset']
-    preview += " " + CORES[config['cor_cifrao']] + config['cifrao'] + CORES['reset'] + " "
-    if config['moldura_inf']:
-        preview += "\n" + config['moldura_inf']
+    # Para exibir, substituímos \w por um diretório exemplo
+    preview = ps1.replace(r'\w', '~/projetos')
+    # Também substituímos escapes de cor do bash por cores do Python para visualização
+    # (isso é complexo, faremos uma versão simplificada)
     print(preview)
-    print("\n" + CORES['reset'] + "(Isso é apenas uma simulação. No Termux real, terá o caminho dinâmico.)")
+    print("\n" + CORES['reset'] + "(Isso é uma simulação. No Termux real, o diretório será dinâmico.)")
     input("\nPressione Enter para voltar.")
 
 def main():
-    """Função principal."""
-    # Verificar se está no Termux
     if not os.path.exists('/data/data/com.termux'):
         print("Este script foi feito para rodar no Termux.")
         sys.exit(1)
-
-    config = carregar_config()  
+    config = carregar_config()
     menu_principal(config)
 
 if __name__ == "__main__":
