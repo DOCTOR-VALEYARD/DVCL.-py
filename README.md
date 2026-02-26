@@ -1,141 +1,105 @@
 ```markdown
-# 🎨 DVCL.-py — Painel de Personalização do Termux
+# 🎨 PAINEL DE PERSONALIZAÇÃO DO TERMUX - DVCL v2.0
 
-<div align="center">
-  <img src="https://img.shields.io/badge/version-1.0-blue.svg" alt="Version 1.0">
-  <img src="https://img.shields.io/badge/python-3.x-green.svg" alt="Python 3">
-  <img src="https://img.shields.io/badge/license-MIT-orange.svg" alt="License MIT">
-  <img src="https://img.shields.io/badge/platform-Termux-brightgreen.svg" alt="Platform Termux">
-</div>
-
-<p align="center">
-  <b>Deixe seu Termux com a sua cara! 🚀</b><br>
-  Criado por <b>DOCTOR VALEYARD CORINGA LUNÁTICO</b>
-</p>
+**Criado por:** DOCTOR VALEYARD CORINGA LUNÁTICO  
+**Data:** Fevereiro de 2026  
+**Versão:** 2.0
 
 ---
 
-## 📌 Sobre o Projeto
+## 📱 SOBRE O PAINEL
 
-O **DVCL.-py** é um script interativo em Python que permite personalizar completamente o prompt (`PS1`) do Termux. Com ele, você pode:
-
-- ✏️ Alterar o nome exibido no terminal
-- 🖼️ Adicionar molduras superior e inferior
-- 🎨 Escolher cores para o nome, prompt e símbolo do cifrão
-- 🔧 Selecionar entre diversos modelos prontos de prompt
-- 💲 Customizar o símbolo do cifrão (qualquer caractere)
-- 👀 Visualizar uma prévia antes de salvar
-- 💾 Salvar as configurações permanentemente (mesmo após fechar o Termux)
+Este é um script Python que permite você personalizar completamente a aparência do seu Termux.  
+Mude o nome, as cores, coloque banners 3D, molduras, caixinhas e até o símbolo do cifrão do jeito que você quiser!
 
 ---
 
-## ⚙️ Funcionalidades Detalhadas
+## ✨ O QUE VOCÊ PODE MUDAR
 
-| Opção | Descrição |
-|-------|-----------|
-| **Nome personalizado** | Substitui o nome de usuário padrão pelo que você quiser. |
-| **Molduras** | 9 estilos prontos ou crie as suas próprias. |
-| **Cores** | 8 cores disponíveis para nome, prompt e cifrão. |
-| **Modelos de prompt** | 7 modelos diferentes (incluindo linhas, horário, etc.). |
-| **Símbolo do cifrão** | Use `$`, `#`, `>`, `λ` ou qualquer outro símbolo. |
-| **Prévia interativa** | Veja como ficará antes de aplicar. |
-| **Backup automático** | O arquivo `.bashrc` original é salvo como `.bashrc.backup_painel`. |
+- ✅ **Nome** que aparece no terminal
+- ✅ **Banners 3D** (6 modelos diferentes)
+- ✅ **Molduras e caixinhas** (8 estilos)
+- ✅ **Cores** para nome, diretório, prompt e cifrão (11 cores)
+- ✅ **Modelos de prompt** (7 opções)
+- ✅ **Símbolo do cifrão** (qualquer caractere)
+- ✅ Ativar ou desativar banner e moldura
 
----
-
-## 📲 Como Instalar e Usar
-
-### Pré‑requisitos
-- Termux instalado e atualizado
-- Python 3 (já vem por padrão no Termux)
-
-### Passo a passo
-
-1. **Clone o repositório**
-   ```bash
-   git clone https://github.com/DOCTOR-VALEYARD/DVCL.-py.git
-```
-
-1. Acesse a pasta
-   ```bash
-   cd DVCL.-py
-   ```
-2. Dê permissão de execução (opcional)
-   ```bash
-   chmod +x Dvcl.py
-   ```
-3. Execute o painel
-   ```bash
-   python Dvcl.py
-   ```
-4. Navegue pelo menu interativo e personalize do seu jeito.
-5. Salve as alterações (opção 9) e reinicie o Termux ou execute:
-   ```bash
-   source ~/.bashrc
-   ```
+Tudo fica salvo permanente. Mesmo se fechar o Termux, volta do jeito que você escolheu.
 
 ---
 
-🎯 Exemplo de Prompt Personalizado
+## 📲 COMO INSTALAR
 
-Aqui está um exemplo do que você pode criar:
-
-```
-╔══════════════════════╗
-🔹 DOCTOR VALEYARD:~/projetos λ
-╚══════════════════════╝
-```
-
-(As possibilidades são infinitas!)
-
----
-
-🔄 Restaurar Configurações Originais
-
-Se quiser voltar ao prompt padrão do Termux, basta restaurar o backup:
+Abra o Termux e cole os comandos abaixo (um por um):
 
 ```bash
-cp ~/.bashrc.backup_painel ~/.bashrc
+pkg update && pkg upgrade -y
+pkg install git -y
+git clone https://github.com/DOCTOR-VALEYARD/DVCL.-py.git
+cd DVCL.-py
+chmod +x src/Termux.py
+python src/Termux.py
 ```
 
-Ou remova manualmente as linhas entre os marcadores # --- PAINEL DOUTOR VALEYARD INÍCIO --- e # --- FIM --- no arquivo ~/.bashrc.
+Depois é só escolher as opções no menu e se divertir!
 
 ---
 
-📁 Estrutura do Projeto
+🖼️ EXEMPLO DE COMO FICA
+
+Com banner, moldura e cores:
 
 ```
-DVCL.-py/
-├── Dvcl.py              # Script principal
-├── README.md            # Este arquivo
-└── .gitignore           (opcional)
-```
+    ██████╗  ██████╗  ██████╗████████╗ ██████╗ ██████╗ 
+    ██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
+    ██║  ██║██║   ██║██║        ██║   ██║   ██║██████╔╝
+    ██║  ██║██║   ██║██║        ██║   ██║   ██║██╔══██╗
+    ██████╔╝╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║
+    ╚═════╝  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
 
----
-
-🧑‍💻 Autor
-
-DOCTOR VALEYARD CORINGA LUNÁTICO
-GitHub
-
----
-
-📄 Licença
-
-Este projeto está licenciado sob a licença MIT – veja o arquivo LICENSE para mais detalhes.
-
----
-
-⭐ Contribua
-
-Gostou do projeto? Deixe uma estrela ⭐ no GitHub e compartilhe com outros usuários do Termux!
-Sugestões e melhorias são bem‑vindas – fique à vontade para abrir uma issue ou enviar um pull request.
-
----
-
-<div align="center">
-  <i>Feito com 💚 e muito código para a comunidade Termux</i>
-</div>
+╔════════════════════════╗
+🔹 DOCTOR:~/projetos λ
+╚════════════════════════╝
 ```
 
 ---
+
+🔄 RESTAURAR O ORIGINAL
+
+Se quiser voltar ao prompt padrão do Termux:
+
+```bash
+cp ~/.bashrc.backup_v2 ~/.bashrc
+```
+
+---
+
+⭐ CURTIU?
+
+Se você gostou do projeto, dá aquela estrela ⭐ no GitHub!
+Isso ajuda muito e motiva a trazer mais novidades.
+
+---
+
+🌐 REDES SOCIAIS
+
+Me siga e me add nas redes:
+
+· 📘 Facebook: [https://www.facebook.com/profile.php?id=61560590163166 ]
+· 📷 Instagram: [https://www.instagram.com/__dvcl__?igsh=MW1laG5kMHptZ3AxMg== ]
+· 💬 WhatsApp: [https://whatsapp.com/channel/0029Vb73Yr22975Gesv6bV1r ]
+
+(É só clicar nos links acima e substituir pelos seus)
+
+---
+
+📄 LICENÇA
+
+Este projeto é open source e está sob a licença MIT.
+Você pode usar, modificar e compartilhar à vontade.
+
+---
+
+Feito com 💚 por DOCTOR VALEYARD CORINGA LUNÁTICO para a comunidade Termux
+
+```
