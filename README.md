@@ -86,7 +86,9 @@ Isso ajuda muito e motiva a trazer mais novidades.
 Me siga e me add nas redes:
 
 · 📘 Facebook: [https://www.facebook.com/profile.php?id=61560590163166 ]
+
 · 📷 Instagram: [https://www.instagram.com/__dvcl__?igsh=MW1laG5kMHptZ3AxMg== ]
+
 · 💬 WhatsApp: [https://whatsapp.com/channel/0029Vb73Yr22975Gesv6bV1r ]
 
 (É só clicar nos links acima e substituir pelos seus)
