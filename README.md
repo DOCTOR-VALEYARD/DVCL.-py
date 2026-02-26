@@ -83,11 +83,10 @@ Isso ajuda muito e motiva a trazer mais novidades.
 
 🌐 REDES SOCIAIS
 
-Me siga e me add nas redes:
+Me siga  nas redes:
 
 · 📘 Facebook: [https://www.facebook.com/profile.php?id=61560590163166 ]
 
-· 📷 Instagram: [https://www.instagram.com/__dvcl__?igsh=MW1laG5kMHptZ3AxMg== ]
 
 · 💬 WhatsApp: [https://whatsapp.com/channel/0029Vb73Yr22975Gesv6bV1r ]
 
