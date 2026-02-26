@@ -65,12 +65,12 @@ def gerar_bloco_bash(cfg):
         bloco.append("echo")
 
     # PROMPT
-    ps1 = ""
+    # PROMPT
+ps1 = ""
 
-    if cfg["mostrar_hora_prompt"]:
-        ps1 += f"{cor_hora}$(date +%H:%M:%S){reset} "
+# Hora NÃO vai mais no prompt (já está no banner)
+ps1 += f"{cor_prompt}        {cfg['nome']}   \\w{reset} $ "
 
-    ps1 += f"{cor_prompt}\\u@\\h:\\w{reset} $ "
 
     bloco.append(f"PS1='{ps1}'")
 
