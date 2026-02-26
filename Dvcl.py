@@ -3,211 +3,160 @@
 
 import os
 import json
-import sys
 import shutil
 
-HOME = os.environ.get('HOME', '/data/data/com.termux/files/home')
-CONFIG_FILE = os.path.join(HOME, '.termux_painel_config.json')
-BASHRC = os.path.join(HOME, '.bashrc')
-BACKUP_BASHRC = os.path.join(HOME, '.bashrc.backup_painel')
+HOME = os.environ.get("HOME")
+CONFIG = os.path.join(HOME, ".painel_termux_config.json")
+BASHRC = os.path.join(HOME, ".bashrc")
+BACKUP = os.path.join(HOME, ".bashrc.backup_painel")
 
 CORES = {
-    'reset': '\033[0m',
-    'bold': '\033[1m',
-    'vermelho': '\033[91m',
-    'verde': '\033[92m',
-    'amarelo': '\033[93m',
-    'azul': '\033[94m',
-    'magenta': '\033[95m',
-    'ciano': '\033[96m',
-    'branco': '\033[97m',
+    "vermelho": "\\033[91m",
+    "verde": "\\033[92m",
+    "amarelo": "\\033[93m",
+    "azul": "\\033[94m",
+    "magenta": "\\033[95m",
+    "ciano": "\\033[96m",
+    "branco": "\\033[97m",
+    "bold": "\\033[1m",
+    "reset": "\\033[0m"
 }
 
-CORES_DISPONIVEIS = list(CORES.keys())
-CORES_DISPONIVEIS.remove('reset')
-CORES_DISPONIVEIS.remove('bold')
-
-
-# ---------------- CONFIG ---------------- #
-
-def carregar_config():
-    if os.path.exists(CONFIG_FILE):
-        try:
-            with open(CONFIG_FILE, 'r') as f:
-                return json.load(f)
-        except:
-            pass
-
+def carregar():
+    if os.path.exists(CONFIG):
+        with open(CONFIG, "r") as f:
+            return json.load(f)
     return {
-        'nome': os.environ.get('USER', 'termux'),
-        'cor_nome': 'verde',
-        'cor_prompt': 'azul',
-        'cor_hora': 'amarelo',
-        'mostrar_hora_banner': True,
-        'mostrar_hora_prompt': True,
-        'moldura_sup': '',
-        'moldura_inf': ''
+        "nome": "TERMUX",
+        "cor_nome": "ciano",
+        "cor_hora": "amarelo",
+        "cor_prompt": "verde",
+        "mostrar_hora_banner": True,
+        "mostrar_hora_prompt": True
     }
 
+def salvar(cfg):
+    with open(CONFIG, "w") as f:
+        json.dump(cfg, f, indent=4)
 
-def salvar_config(config):
-    with open(CONFIG_FILE, 'w') as f:
-        json.dump(config, f, indent=4)
-
-
-# ---------------- BANNER ---------------- #
-
-def gerar_banner(config):
+def instalar_figlet():
     os.system("pkg install figlet -y > /dev/null 2>&1")
 
-    nome = config['nome']
-    cor_nome = CORES[config['cor_nome']]
-    cor_hora = CORES[config['cor_hora']]
-    reset = CORES['reset']
+def gerar_bloco_bash(cfg):
+    instalar_figlet()
 
-    banner = "clear\n"
-    banner += f"echo -e \"{cor_nome}\"\n"
-    banner += f"figlet \"{nome}\"\n"
-    banner += f"echo -e \"{reset}\"\n"
+    nome = cfg["nome"]
+    cor_nome = CORES[cfg["cor_nome"]]
+    cor_hora = CORES[cfg["cor_hora"]]
+    cor_prompt = CORES[cfg["cor_prompt"]]
+    reset = CORES["reset"]
 
-    if config['mostrar_hora_banner']:
-        banner += f"echo -e \"{cor_hora}Hora: $(date +'%H:%M:%S'){reset}\"\n"
-        banner += "echo\n"
+    bloco = []
+    bloco.append("clear")
 
-    return banner
+    # NOME GIGANTE
+    bloco.append(f"echo -e \"{cor_nome}{CORES['bold']}\"")
+    bloco.append(f"figlet \"{nome}\"")
+    bloco.append(f"echo -e \"{reset}\"")
 
+    # HORA NO TOPO
+    if cfg["mostrar_hora_banner"]:
+        bloco.append(f"echo -e \"{cor_hora}Hora: $(date +'%H:%M:%S'){reset}\"")
+        bloco.append("echo")
 
-# ---------------- PROMPT ---------------- #
+    # PROMPT
+    ps1 = ""
 
-def gerar_ps1(config):
-    nome = config['nome']
-    cor_nome = CORES[config['cor_nome']]
-    cor_prompt = CORES[config['cor_prompt']]
-    cor_hora = CORES['cor_hora']
-    reset = CORES['reset']
-    bold = CORES['bold']
+    if cfg["mostrar_hora_prompt"]:
+        ps1 += f"{cor_hora}$(date +%H:%M:%S){reset} "
 
-    prompt = ""
+    ps1 += f"{cor_prompt}\\u@\\h:\\w{reset} $ "
 
-    if config['moldura_sup']:
-        prompt += config['moldura_sup'] + "\n"
+    bloco.append(f"PS1='{ps1}'")
 
-    if config['mostrar_hora_prompt']:
-        prompt += f"{CORES[cor_hora]}$(date +%H:%M:%S){reset} "
+    return "\n".join(bloco)
 
-    prompt += f"{cor_nome}{bold}{nome}{reset}"
-    prompt += f"{cor_prompt}:\\w{reset} $ "
+def aplicar(cfg):
+    bloco = gerar_bloco_bash(cfg)
 
-    if config['moldura_inf']:
-        prompt += "\n" + config['moldura_inf']
+    inicio = "# === PAINEL PERSONALIZADO INICIO ===\n"
+    fim = "# === PAINEL PERSONALIZADO FIM ===\n"
 
-    return prompt
-
-
-# ---------------- APLICAR ---------------- #
-
-def aplicar_config(config):
-    banner = gerar_banner(config)
-    ps1 = gerar_ps1(config)
-
-    if os.path.exists(BASHRC) and not os.path.exists(BACKUP_BASHRC):
-        shutil.copy2(BASHRC, BACKUP_BASHRC)
-
-    marcador_inicio = "# --- PAINEL V2 INICIO ---\n"
-    marcador_fim = "# --- PAINEL V2 FIM ---\n"
+    if os.path.exists(BASHRC) and not os.path.exists(BACKUP):
+        shutil.copy2(BASHRC, BACKUP)
 
     linhas = []
     if os.path.exists(BASHRC):
-        with open(BASHRC, 'r') as f:
+        with open(BASHRC, "r") as f:
             linhas = f.readlines()
 
-    inicio = fim = -1
-    for i, linha in enumerate(linhas):
-        if linha == marcador_inicio:
-            inicio = i
-        if linha == marcador_fim:
-            fim = i
+    i_inicio = i_fim = -1
+    for i, l in enumerate(linhas):
+        if l == inicio:
+            i_inicio = i
+        if l == fim:
+            i_fim = i
             break
 
-    bloco = [
-        marcador_inicio,
-        banner,
-        f"PS1='{ps1}'\n",
-        marcador_fim
+    novo_bloco = [
+        inicio,
+        bloco + "\n",
+        fim
     ]
 
-    if inicio != -1 and fim != -1:
-        linhas[inicio:fim+1] = bloco
+    if i_inicio != -1 and i_fim != -1:
+        linhas[i_inicio:i_fim+1] = novo_bloco
     else:
-        linhas.extend(bloco)
+        linhas.extend(novo_bloco)
 
-    with open(BASHRC, 'w') as f:
+    with open(BASHRC, "w") as f:
         f.writelines(linhas)
 
-
-# ---------------- MENU ---------------- #
-
-def escolher_cor(tipo, config):
-    print("\nEscolha a cor:")
-    for i, cor in enumerate(CORES_DISPONIVEIS, 1):
-        print(f"{i}. {CORES[cor]}{cor}{CORES['reset']}")
-
-    opc = input("Número: ").strip()
-    try:
-        idx = int(opc) - 1
-        if 0 <= idx < len(CORES_DISPONIVEIS):
-            config[tipo] = CORES_DISPONIVEIS[idx]
-    except:
-        pass
-
-
 def menu():
-    config = carregar_config()
+    cfg = carregar()
 
     while True:
-        print("\n===== PAINEL TERMUX 2.0 =====")
-        print("1. Alterar nome")
-        print("2. Cor do nome")
-        print("3. Cor do prompt")
-        print("4. Cor da hora")
-        print("5. Ativar/desativar hora no banner")
-        print("6. Ativar/desativar hora no prompt")
-        print("7. Aplicar e sair")
-        print("0. Sair")
+        os.system("clear")
+        print("\033[95m\033[1m")
+        print("╔════════════════════════════════════╗")
+        print("║     PAINEL AVANÇADO DO TERMUX     ║")
+        print("╚════════════════════════════════════╝")
+        print("\033[0m")
 
-        op = input("Escolha: ").strip()
+        print(f"Nome: {cfg['nome']}")
+        print(f"Hora no banner: {cfg['mostrar_hora_banner']}")
+        print(f"Hora no prompt: {cfg['mostrar_hora_prompt']}")
+        print("")
+        print("1 - Alterar nome")
+        print("2 - Cor do nome")
+        print("3 - Cor da hora")
+        print("4 - Cor do prompt")
+        print("5 - Ativar/Desativar hora no topo")
+        print("6 - Ativar/Desativar hora no prompt")
+        print("7 - Aplicar e sair")
+        print("0 - Sair")
 
-        if op == '1':
-            config['nome'] = input("Novo nome: ").strip()
-        elif op == '2':
-            escolher_cor('cor_nome', config)
-        elif op == '3':
-            escolher_cor('cor_prompt', config)
-        elif op == '4':
-            escolher_cor('cor_hora', config)
-        elif op == '5':
-            config['mostrar_hora_banner'] = not config['mostrar_hora_banner']
-        elif op == '6':
-            config['mostrar_hora_prompt'] = not config['mostrar_hora_prompt']
-        elif op == '7':
-            salvar_config(config)
-            aplicar_config(config)
-            print("Aplicado com sucesso!")
-            print("Reinicie o Termux ou use: source ~/.bashrc")
+        op = input("\nEscolha: ")
+
+        if op == "1":
+            cfg["nome"] = input("Novo nome: ")
+        elif op == "2":
+            cfg["cor_nome"] = input("Cor (vermelho, verde, amarelo, azul, magenta, ciano, branco): ")
+        elif op == "3":
+            cfg["cor_hora"] = input("Cor da hora: ")
+        elif op == "4":
+            cfg["cor_prompt"] = input("Cor do prompt: ")
+        elif op == "5":
+            cfg["mostrar_hora_banner"] = not cfg["mostrar_hora_banner"]
+        elif op == "6":
+            cfg["mostrar_hora_prompt"] = not cfg["mostrar_hora_prompt"]
+        elif op == "7":
+            salvar(cfg)
+            aplicar(cfg)
+            print("Aplicado. Reinicie o Termux ou use: source ~/.bashrc")
             break
-        elif op == '0':
+        elif op == "0":
             break
-
-
-# ---------------- MAIN ---------------- #
-
-def main():
-    if not os.path.exists('/data/data/com.termux'):
-        print("Execute apenas no Termux.")
-        sys.exit(1)
-
-    menu()
-
 
 if __name__ == "__main__":
-    main()
+    menu()
