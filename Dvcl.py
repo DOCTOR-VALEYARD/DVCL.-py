@@ -66,11 +66,10 @@ def gerar_bloco_bash(cfg):
 
     # PROMPT
     # PROMPT
-ps1 = ""
+    ps1 = ""
 
-# Hora NÃO vai mais no prompt (já está no banner)
-ps1 += f"{cor_prompt}        {cfg['nome']}   \\w{reset} $ "
-
+    # Hora NÃO vai no prompt (já está no banner)
+    ps1 += f"{cor_prompt}        {cfg['nome']}   \\w{reset} $ "
 
     bloco.append(f"PS1='{ps1}'")
 
